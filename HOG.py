@@ -42,39 +42,141 @@ def histo_normalization(block, block_size):
     return return_block.reshape(x*y*z)
 
 
-# normalized cross-correlation
-# a and b are two normalized descriptors,
-# def ncc(a, b):
+def block_descriptor(im):
+    im = im.astype('float') / 255.0
 
-# returns dot product
-def dot_product(a, b):
-    return np.dot(a,b) / (np.sqrt(np.sum(a ** 2)) + np.sqrt(np.sum(b ** 2)))
+    filter_x, filter_y = get_differential_filter()
+    im_dx = filter_image(im, filter_x)
+    im_dy = filter_image(im, filter_y)
+    grad_mag, grad_angle = get_gradient(im_dx, im_dy)
+    ori = build_histogram(grad_mag, grad_angle, 8)
+    hog = get_block_descriptor(ori, 2)
+
+    return hog
+
 
 # input template and target vector.
-def ncc(a, b):
-    mean_a = np.mean(a)
-    mean_b = np.mean(b)
+def ncc(tar, tem):
+    tar_h, tar_w, tar_d = np.shape(tar)
+    tem_h, tem_w, tem_d = np.shape(tem)
+    if np.shape(tem) != np.shape(tar):
+        print("ERROR: NCC")
+        print("       template and target image has to be same to do NCC")
+        exit()
 
-    a_h, a_w = np.shape(a)
-    b_h, b_w = np.shape(b)
-    if a_h != b_h:
-        print("ERROR: NCC calculation cannot be done")
-        exit(0)
-    if a_w != b_w:
-        print("ERROR: NCC calculation cannot be done")
-        exit(0)
+    mean_a = np.mean(tar)
+    mean_b = np.mean(tem)
+    dot = 0.0
+    x   = 0.0
+    y   = 0.0
+    for i in range (tar_h):
+        for j in range (tar_w):
+            a = tar[i,j,:] - mean_a
+            b = tem[i,j,:] - mean_b
+            dot += np.dot(a, b)
+            x += np.sum(a ** 2)
+            y += np.sum(b ** 2)
 
-    mean_a = np.mean(a)
-    mean_b = np.mean(b)
-    a = a.reshape(a_h * a_w)
-    b = b.reshape(b_h * b_w)
+    score = dot / np.sqrt(x * y)
+    return score
 
-    returnValue = np.dot(a - mean_a, b - mean_b)
 
-    division = np.sqrt(np.sum(a ** 2)) * np.sqrt(np.sum(b ** 2))
+# IoU : intersection of Union
+def box_calculation(box1, box2, box_size):
+    x1 = box1[0]
+    x2 = box1[0] + box_size
+    y1 = box1[1]
+    y2 = box1[1] + box_size
 
-    return returnValue / division
+    x3 = box2[0]
+    x4 = box2[0] + box_size
+    y3 = box2[1]
+    y4 = box2[1] + box_size
 
+    if x1 < x3:
+        inter_x = x2 - x3
+        union_x = x4 - x1
+        union_sub1_x = x4 - x2
+        union_sub2_x = x3 - x1
+        if y1 < y3:
+            inter_y = y2 - y3
+            union_y = y4 - y1
+            union_sub1_y = y3 - y1
+            union_sub2_y = y4 - y2
+        else:
+            inter_y = y4 - y1
+            union_y = y2 - y3
+            union_sub1_y = y2 - y4
+            union_sub2_y = y1 - y3
+    else:
+        inter_x = x4 - x1
+        union_x = x2 - x3
+        union_sub1_x = x2 - x4
+        union_sub2_x = x1 - x3
+        if y1 < y3:
+            inter_y = y2 - y3
+            union_y = y4 - y1
+            union_sub1_y = y4 - y2
+            union_sub2_y = y3 - y1
+        else:
+            inter_y = y4 - y1
+            union_y = y2 - y3
+            union_sub1_y = y1 - y3
+            union_sub2_y = y2 - y4
+
+    inter = inter_x * inter_y
+    union = (union_x * union_y) - (union_sub1_x * union_sub1_y) - (union_sub2_x * union_sub2_y)
+    iou = inter / union
+
+    return iou
+
+
+def IoU (boxes, box_size):
+    num = np.shape(boxes)[0]
+    count = num
+    i = 0
+    j = 1
+
+    while True:
+        if i == count:
+            break
+        if j == count:
+            i += 1
+            j = i + 1
+
+        iou = box_calculation(boxes[i], boxes[j], box_size)
+        if iou > 0.5:
+            if boxes[i, 2] > boxes[j, 2]:
+                np.delete(boxes, j, 0)
+                count -= 1
+            else:
+                np.delete(boxes, i, 0)
+                count -= 1
+                i += 1
+                j += 1
+        else:
+            j += 1
+
+
+    # while i < num:
+    #     while j < num:
+    #         if i == j:
+    #             j += 1
+    #
+    #         iou = box_calculation(boxes[i], boxes[j], box_size)
+    #
+    #         if iou > 0.5:
+    #             # delete whatever the score is less.
+    #             if boxes[i, 2] > boxes[j, 2]:
+    #                 np.delete(boxes, j, 0)
+    #             else:
+    #                 np.delete(boxes, i, 0)
+    #                 j -= 1
+    #         else:
+    #             j += 1
+    #     i += 1
+
+    return boxes
 
 
 
@@ -235,18 +337,9 @@ def face_recognition(I_target, I_template):
         print("ERROR: template image is bigger than target image")
         exit(0)
 
-    filter_x, filter_y = get_differential_filter()
 
-    I_target = I_target.astype('float') / 255.0
-    I_template = I_template.astype('float') / 255.0
+    template_hog = block_descriptor(I_template)
 
-    target_im_dx = filter_image(I_target, filter_x)
-    target_im_dy = filter_image(I_target, filter_y)
-    target_grad_mag, target_grad_angle = get_gradient(target_im_dx, target_im_dy)
-
-    template_im_dx = filter_image(I_template, filter_x)
-    template_im_dy = filter_image(I_template, filter_y)
-    template_grad_mag, template_grad_angle = get_gradient(template_im_dx, template_im_dy)
 
     epsilon = 0.3
     face_box = np.array([])
@@ -255,18 +348,15 @@ def face_recognition(I_target, I_template):
     # for i in range (int(template_h / 2), target_h - int(template_h / 2)):
     #     for j in range (int(template_w / 2), target_w - int(template_w / 2)):
     for i in range (0, target_h - template_h):
-        for j in range(0, target_w - template_w):
-            target = target_grad_angle[i:i+template_h, j:j+template_w]
-            s = ncc(target, template_grad_angle)
-            print(s)
-            if (s > 0.1):
-                face_box = np.append(face_box, [j,i,0.3])
+        for j in range(0, target_w - template_h):
+            target = I_target[i:i+template_h, j:j+template_w]
+            target_hog = block_descriptor(target)
+
+            s = ncc(target_hog, template_hog)
+
+            if (s > 0.4):
+                face_box = np.append(face_box, [j,i,s])
                 count += 1
-
-
-            # if s > epsilon:
-            #     count += 1
-            #     face_box = np.append(face_box, [j,i,s])
 
     face_box = face_box.reshape(count, 3)
     return face_box
@@ -279,12 +369,18 @@ def box_visualization(I_target,bounding_boxes,box_size):
     hh,ww,cc=I_target.shape
 
     fimg=I_target.copy()
+
+    ## IOU occurs here
+    bouding_boxes = IoU(bounding_boxes, box_size)
+
+
     for ii in range(bounding_boxes.shape[0]):
 
-        x1 = bounding_boxes[ii, 0] - box_size / 2
-        x2 = bounding_boxes[ii, 0] + box_size / 2
-        y1 = bounding_boxes[ii, 1] - box_size / 2
-        y2 = bounding_boxes[ii, 1] + box_size / 2
+        # bounding boxes are left top corner.
+        x1 = bounding_boxes[ii, 0]
+        y1 = bounding_boxes[ii, 1]
+        x2 = bounding_boxes[ii, 0] + box_size
+        y2 = bounding_boxes[ii, 1] + box_size
 
         if x1<0:
             x1=0
@@ -315,15 +411,15 @@ if __name__=='__main__':
     # im = cv2.imread('balloons.tif', 0)
     # hog = extract_hog(im)
 
-    I_target= cv2.imread('target.png', 0)
+    I_target= cv2.imread('img/target.png', 0)
     #MxN image
 
-    I_template = cv2.imread('template.png', 0)
+    I_template = cv2.imread('img/template.png', 0)
     #mxn  face template
 
     bounding_boxes = face_recognition(I_target, I_template)
 
-    I_target_c= cv2.imread('target.png')
+    I_target_c= cv2.imread('img/target.png')
     # MxN image (just for visualization)
     box_visualization(I_target_c, bounding_boxes, I_template.shape[0])
     #this is visualization code.
