@@ -93,6 +93,16 @@ def box_calculation(box1, box2, box_size):
     y3 = box2[1]
     y4 = box2[1] + box_size
 
+    if x1 < x3 and x2 < x3:
+        return 0
+    elif x3 < x1 and x4 < x1:
+        return 0
+
+    if y1 < y3 and y2 < y3:
+        return 0
+    elif y3 < y1 and y4 < y1:
+        return 0
+
     if x1 < x3:
         inter_x = x2 - x3
         union_x = x4 - x1
@@ -132,49 +142,28 @@ def box_calculation(box1, box2, box_size):
 
 
 def IoU (boxes, box_size):
-    num = np.shape(boxes)[0]
-    count = num
-    i = 0
+    count = np.shape(boxes)[0]
+    i = 0   # dominant
     j = 1
 
     while True:
-        if i == count:
-            break
-        if j == count:
-            i += 1
-            j = i + 1
-
         iou = box_calculation(boxes[i], boxes[j], box_size)
         if iou > 0.5:
             if boxes[i, 2] > boxes[j, 2]:
                 np.delete(boxes, j, 0)
                 count -= 1
             else:
-                np.delete(boxes, i, 0)
+                boxes[[i,j],:] = boxes[[j,i],:] # swap the position
+                np.delete(boxes, j, 0)
                 count -= 1
-                i += 1
-                j += 1
         else:
             j += 1
-
-
-    # while i < num:
-    #     while j < num:
-    #         if i == j:
-    #             j += 1
-    #
-    #         iou = box_calculation(boxes[i], boxes[j], box_size)
-    #
-    #         if iou > 0.5:
-    #             # delete whatever the score is less.
-    #             if boxes[i, 2] > boxes[j, 2]:
-    #                 np.delete(boxes, j, 0)
-    #             else:
-    #                 np.delete(boxes, i, 0)
-    #                 j -= 1
-    #         else:
-    #             j += 1
-    #     i += 1
+            
+        if j == count:
+            i += 1
+            j = i+1
+        if i == count - 1:
+            break
 
     return boxes
 
