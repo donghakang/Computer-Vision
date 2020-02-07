@@ -3,21 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def get_differential_filter():
-    # horizontal differential filter
     filter_x = np.array([-1,0,1,-1,0,1,-1,0,1]).reshape(3,3)
-
-    ## shift right
-    # filter_x = np.array([0,0,0,1,0,0,0,0,0]).reshape(3,3)
-
-    ## sharpen
-    # filter_x = np.array([1/9,1/9,1/9,1/9,1/9,1/9,1/9,1/9,1/9]).reshape(3,3)
-    # filter_y = np.array([0,0,0,0,2,0,0,0,0]).reshape(3,3)
-    # filter_x = np.subtract(filter_y,filter_x)
-
-
-    # vertical differential filter
     filter_y = np.array([-1,-1,-1,0,0,0,1,1,1]).reshape(3,3)
-
     return filter_x, filter_y
 
 
@@ -45,16 +32,48 @@ def calculate_filter(filter, kernel):
 def histo_normalization(block, block_size):
     e = 0.001       # prevent divison by 0.
     x,y,z = np.shape(block)
-    division = np.sum(block ** 2 + e ** 2, axis = 2) # block_size x block_size
+    # division = np.sum(block ** 2, axis = 2) + e ** 2  # block_size x block_size
+    return_block = np.zeros(x * y * z).reshape(np.shape(block))
     for i in range (0, block_size):
         for j in range (0, block_size):
-            block[i,j,:] = block[i,j,:]/division[i,j]
+            division = np.sqrt(np.sum(block[i,j,:] ** 2) + e ** 2)
+            return_block[i,j,:] = block[i,j,:]/division
 
-    # print(normal_block)
-    return block.reshape(x*y*z)
+    return return_block.reshape(x*y*z)
 
 
+# normalized cross-correlation
+# a and b are two normalized descriptors,
+# def ncc(a, b):
 
+# returns dot product
+def dot_product(a, b):
+    return np.dot(a,b) / (np.sqrt(np.sum(a ** 2)) + np.sqrt(np.sum(b ** 2)))
+
+# input template and target vector.
+def ncc(a, b):
+    mean_a = np.mean(a)
+    mean_b = np.mean(b)
+
+    a_h, a_w = np.shape(a)
+    b_h, b_w = np.shape(b)
+    if a_h != b_h:
+        print("ERROR: NCC calculation cannot be done")
+        exit(0)
+    if a_w != b_w:
+        print("ERROR: NCC calculation cannot be done")
+        exit(0)
+
+    mean_a = np.mean(a)
+    mean_b = np.mean(b)
+    a = a.reshape(a_h * a_w)
+    b = b.reshape(b_h * b_w)
+
+    returnValue = np.dot(a - mean_a, b - mean_b)
+
+    division = np.sqrt(np.sum(a ** 2)) * np.sqrt(np.sum(b ** 2))
+
+    return returnValue / division
 
 
 
@@ -63,15 +82,9 @@ def histo_normalization(block, block_size):
 ########################################################################
 #####################    GIVEN CODE : MODIFIED     #####################
 ########################################################################
+
 def filter_image(im, filter):
     im_h, im_w = im.shape           # size of the image
-    print(im.shape)
-    cell_size = 8
-    num_cell_h, num_cell_w = int(im_h / cell_size), int(im_w / cell_size)
-    print("NUMCELLSS: " + str(num_cell_h) + ", " + str(num_cell_w))
-    block_size = 2
-    num_blocks_h, num_blocks_w = num_cell_h - block_size + 1, num_cell_w - block_size + 1
-    print("NUMBLOCKS: " + str(num_blocks_h) + ", " + str(num_blocks_w))
 
     new_im = im                     # create temporary image.
     return_im = np.zeros(im.shape)
@@ -86,6 +99,7 @@ def filter_image(im, filter):
             return_im[i-1,j-1] = calculate_filter(filter, kernel)
 
     return return_im
+
 
 def get_gradient(im_dx, im_dy):
     # im_dx: x differential image
@@ -104,11 +118,9 @@ def get_gradient(im_dx, im_dy):
 
 
 def build_histogram(grad_mag, grad_angle, cell_size):
-    # To do
-    print("GRADMAG")
     grad_mag_M, grad_mag_N = np.shape(grad_mag)
-    print(grad_mag_M, grad_mag_N)
     grad_angle_M, grad_angle_N = np.shape(grad_angle)
+
     if grad_mag_M != grad_angle_M or grad_mag_N != grad_angle_N:
         print("Error in Build histogram")
         exit(0)
@@ -116,15 +128,7 @@ def build_histogram(grad_mag, grad_angle, cell_size):
     M = int(grad_mag_M / cell_size)
     N = int(grad_mag_N / cell_size)
 
-    print("==================================")
-    print("==================================")
-
-    print((M,N))
-
     ori_histo = np.zeros((M, N, 6))    # M, N, degree
-
-    # typical cell size is 8
-
     for m in range (0, M):
         for n in range (0, N):
             grad_mag1 = 0.0
@@ -166,9 +170,6 @@ def get_block_descriptor(ori_histo, block_size):
     n_block = 6 * (block_size ** 2)
     ori_histo_normalized = np.zeros((n_M, n_N, n_block))
 
-    print((n_M, n_N))
-    # go to helper for the function
-
     for i in range (0, n_M):
         for j in range (0, n_N):
             block_ = ori_histo[i:i+block_size, j:j+block_size, :]
@@ -192,6 +193,7 @@ def extract_hog(im):
     grad_mag, grad_angle = get_gradient(im_dx, im_dy)
     ori = build_histogram(grad_mag, grad_angle, 8)
     hog = get_block_descriptor(ori, 2)
+    # hog = np.zeros(111864)
     # visualize to verify
     visualize_hog(im, hog, 8, 2)
 
@@ -218,57 +220,110 @@ def visualize_hog(im, hog, cell_size, block_size):
     plt.show()
 
 
+
+
+
+def face_recognition(I_target, I_template):
+    # bounding boxes n x 3 .. [x, y, s]
+    # s = a . b
+    target_h, target_w = np.shape(I_target)
+    template_h, template_w = np.shape(I_template)
+    if target_h < template_h:
+        print("ERROR: template image is bigger than target image")
+        exit(0)
+    if target_w < template_w:
+        print("ERROR: template image is bigger than target image")
+        exit(0)
+
+    filter_x, filter_y = get_differential_filter()
+
+    I_target = I_target.astype('float') / 255.0
+    I_template = I_template.astype('float') / 255.0
+
+    target_im_dx = filter_image(I_target, filter_x)
+    target_im_dy = filter_image(I_target, filter_y)
+    target_grad_mag, target_grad_angle = get_gradient(target_im_dx, target_im_dy)
+
+    template_im_dx = filter_image(I_template, filter_x)
+    template_im_dy = filter_image(I_template, filter_y)
+    template_grad_mag, template_grad_angle = get_gradient(template_im_dx, template_im_dy)
+
+    epsilon = 0.3
+    face_box = np.array([])
+    count = 0
+
+    # for i in range (int(template_h / 2), target_h - int(template_h / 2)):
+    #     for j in range (int(template_w / 2), target_w - int(template_w / 2)):
+    for i in range (0, target_h - template_h):
+        for j in range(0, target_w - template_w):
+            target = target_grad_angle[i:i+template_h, j:j+template_w]
+            s = ncc(target, template_grad_angle)
+            print(s)
+            if (s > 0.1):
+                face_box = np.append(face_box, [j,i,0.3])
+                count += 1
+
+
+            # if s > epsilon:
+            #     count += 1
+            #     face_box = np.append(face_box, [j,i,s])
+
+    face_box = face_box.reshape(count, 3)
+    return face_box
+
+
+
+
+def box_visualization(I_target,bounding_boxes,box_size):
+
+    hh,ww,cc=I_target.shape
+
+    fimg=I_target.copy()
+    for ii in range(bounding_boxes.shape[0]):
+
+        x1 = bounding_boxes[ii, 0] - box_size / 2
+        x2 = bounding_boxes[ii, 0] + box_size / 2
+        y1 = bounding_boxes[ii, 1] - box_size / 2
+        y2 = bounding_boxes[ii, 1] + box_size / 2
+
+        if x1<0:
+            x1=0
+        if x1>ww-1:
+            x1=ww-1
+        if x2<0:
+            x2=0
+        if x2>ww-1:
+            x2=ww-1
+        if y1<0:
+            y1=0
+        if y1>hh-1:
+            y1=hh-1
+        if y2<0:
+            y2=0
+        if y2>hh-1:
+            y2=hh-1
+        fimg = cv2.rectangle(fimg, (int(x1),int(y1)), (int(x2),int(y2)), (255, 0, 0), 1)
+        cv2.putText(fimg, "%.2f"%bounding_boxes[ii,2], (int(x1)+1, int(y1)+2), cv2.FONT_HERSHEY_SIMPLEX , 0.5, (0, 255, 0), 2, cv2.LINE_AA)
+
+
+    plt.figure(3)
+    plt.imshow(fimg, vmin=0, vmax=1)
+    plt.show()
+
+
 if __name__=='__main__':
-    im = cv2.imread('balloons.tif', 0)
-    hog = extract_hog(im)
+    # im = cv2.imread('balloons.tif', 0)
+    # hog = extract_hog(im)
 
-    # filter_x, filter_y = get_differential_filter()
-    # im_dx = filter_image(im, filter_x)
-    # im_dy = filter_image(im, filter_y)
-    # grad_mag, grad_angle = get_gradient(im_dx, im_dy)
-    # ori = build_histogram(grad_mag, grad_angle, 6)
-    # get_block_descriptor(ori, 2)
-    # # DEBUG
-    # #
-    #
-    # im_dx      = image_processing(im_dx)
-    # im_dy      = image_processing(im_dy)
-    # grad_mag   = image_processing(grad_mag)
-    # grad_angle = image_processing(grad_angle)
-    #
-    # print(grad_mag[2,2])
-    # image_processing(im_dy)
-    # image_processing(grad_mag)
-    # image_processing(grad_angle)
+    I_target= cv2.imread('target.png', 0)
+    #MxN image
 
-    # cv2.imshow('im', im)
-    # cv2.imshow('im_dx', im_dx)
-    # cv2.imshow('im_dy', im_dy)
-    # cv2.imshow('grad_mag', grad_mag)
-    # cv2.imshow('grad_angle', grad_angle)
+    I_template = cv2.imread('template.png', 0)
+    #mxn  face template
 
+    bounding_boxes = face_recognition(I_target, I_template)
 
-
-    # plt.imshow(im_dx, cmap='jet')
-    # plt.show()
-    # plt.imshow(im_dy, cmap='jet')
-    # plt.show()
-    # plt.imshow(grad_mag, cmap='jet')
-    # plt.show()
-    # plt.imshow(get_gradient(im_dx, im_dy)[1], cmap='jet')
-    # plt.imshow(grad_mag, cmap = 'jet')
-    # plt.show()
-    # plt.imshow(grad_angle, cmap = 'jet')
-    # plt.show()
-
-    # cv2.imshow('image', filter_image(im, im_dy))
-    # cv2.imshow('image', im)
-    key = cv2.waitKey(0)
-
-
-    # exit when ESC
-    if key == 27:
-        cv2.destroyAllWindows()
-        del(im)
-        del(im_dx)
-        del(im_dy)
+    I_target_c= cv2.imread('target.png')
+    # MxN image (just for visualization)
+    box_visualization(I_target_c, bounding_boxes, I_template.shape[0])
+    #this is visualization code.
