@@ -81,6 +81,7 @@ def ncc(tar, tem):
     return score
 
 
+
 # IoU : intersection of Union
 def box_calculation(box1, box2, box_size):
     x1 = box1[0]
@@ -156,6 +157,7 @@ def IoU (boxes, box_size):
                 boxes[[i,j],:] = boxes[[j,i],:] # swap the position
                 np.delete(boxes, j, 0)
                 count -= 1
+                print("swap")
         else:
             j += 1
 
@@ -164,6 +166,7 @@ def IoU (boxes, box_size):
             j = i+1
         if i == count - 1:
             break
+        print("IOU: " +str(iou) + " == " + str(i) + " :: " + str(j) + " :: " + str(count))
 
     return boxes
 
@@ -338,13 +341,10 @@ def face_recognition(I_target, I_template):
 
     template_hog = block_descriptor(I_template)
 
-
     epsilon = 0.3
     face_box = np.array([])
     count = 0
 
-    # for i in range (int(template_h / 2), target_h - int(template_h / 2)):
-    #     for j in range (int(template_w / 2), target_w - int(template_w / 2)):
     for i in range (0, target_h - template_h):
         for j in range(0, target_w - template_h):
             target = I_target[i:i+template_h, j:j+template_w]
@@ -369,7 +369,7 @@ def box_visualization(I_target,bounding_boxes,box_size):
     fimg=I_target.copy()
 
     ## IOU occurs here
-    # bouding_boxes = IoU(bounding_boxes, box_size)
+    bouding_boxes = IoU(bounding_boxes, box_size)
 
 
     for ii in range(bounding_boxes.shape[0]):
