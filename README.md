@@ -18,7 +18,7 @@ python3 HOG_ver1.py
 With the filtered image, and *get_gradient* function, the image can be visualized by magnitude and angle of the gradient.
 By gradient image and *build_histogram*, *get_block_descriptor* function, The image can be described as
 Histogram. With the histogram, one can finally detect the face with target image and template image using *face_detection* function.
-
+(It takes a while to run...)
 
 ## Running the tests
 
@@ -32,31 +32,35 @@ Histogram. With the histogram, one can finally detect the face with target image
 
 ### Test Images
 
-original image
-
 <img src="./img/original.png" width="50%" height="50%">
+This is the original image.
 
-im_dx, x direction filter
 
 <img src="./img/im_dx.png" width="50%" height="50%">
-
-im_dy, y direction filter
+im_dx, x direction filter
 
 <img src="./img/im_dy.png" width="50%" height="50%">
+im_dy, y direction filter
 
-grad_mag gradient by magnitude
+After the filtering, the image will look like the above.
+
+
 
 <img src="./img/grad_mag.png" width="50%" height="50%">
-
-grad_angle gradient by angle
+grad_mag gradient by magnitude
 
 <img src="./img/grad_angle.png" width="50%" height="50%">
+grad_angle gradient by angle
 
-HOG Descriptor
+With the filter above, we can obtain magnitude and angle filtered image
+
 
 <img src="./img/HOG.png" width="50%" height="50%">
+HOG Descriptor. (angle)
 
-
-Face Detection - Threshold
 
 <img src="./img/threshold.png" width="50%" height="50%">
+Face Detection - Threshold
+
+<img src="./img/IoU.png" width="50%" height="50%">
+Face Detection after IoU.
