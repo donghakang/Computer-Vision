@@ -151,11 +151,11 @@ def IoU (boxes, box_size):
         iou = box_calculation(boxes[i], boxes[j], box_size)
         if iou > 0.5:
             if boxes[i, 2] > boxes[j, 2]:
-                np.delete(boxes, j, 0)
+                boxes = np.delete(boxes, j, 0)
                 count -= 1
             else:
                 boxes[[i,j],:] = boxes[[j,i],:] # swap the position
-                np.delete(boxes, j, 0)
+                boxes = np.delete(boxes, j, 0)
                 count -= 1
                 print("swap")
         else:
