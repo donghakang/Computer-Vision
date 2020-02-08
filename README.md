@@ -29,16 +29,15 @@ Histogram. With the histogram, one can finally detect the face with target image
 
 ### Test Images
 
-<!-- <img src="./img/original.png" width="50%" height="50%"> -->
-![Image description](./img/original.png)
-**original image**
+<img src="./img/original.png" width="50%" height="50%">
+original image
 <img src="./img/im_dx.png" width="50%" height="50%">
-**im_dx** x direction filter
+im_dx, x direction filter
 <img src="./img/im_dy.png" width="50%" height="50%">
-**im_dy** y direction filter
+im_dy, y direction filter
 <img src="./img/grad_mag.png" width="50%" height="50%">
-**grad_mag** gradient by magnitude
+grad_mag gradient by magnitude
 <img src="./img/grad_angle.png" width="50%" height="50%">
-**grad_angle** gradient by angle
+grad_angle gradient by angle
 <img src="./img/HOG.png" width="50%" height="50%">
-**HOG Descriptor**
+HOG Descriptor
