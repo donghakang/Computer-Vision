@@ -29,7 +29,7 @@ Histogram. With the histogram, one can finally detect the face with target image
 
 ### Test Images
 
-<img src="./img/original.png" width="50%" height="50%">
+<!-- <img src="./img/original.png" width="50%" height="50%"> -->
 ![Image description](./img/original.png)
 **original image**
 <img src="./img/im_dx.png" width="50%" height="50%">
