@@ -164,10 +164,12 @@ def IoU (boxes, box_size):
         if j == count:
             i += 1
             j = i+1
-        if i == count - 1:
+        if i >= count - 1:
             break
-        print("IOU: " +str(iou) + " == " + str(i) + " :: " + str(j) + " :: " + str(count))
+        # print("IOU: " +str(iou) + " == " + str(i) + " :: " + str(j) + " :: " + str(count))
 
+
+    print(boxes)
     return boxes
 
 
@@ -338,7 +340,6 @@ def face_recognition(I_target, I_template):
         print("ERROR: template image is bigger than target image")
         exit(0)
 
-
     template_hog = block_descriptor(I_template)
 
     epsilon = 0.3
@@ -369,8 +370,8 @@ def box_visualization(I_target,bounding_boxes,box_size):
     fimg=I_target.copy()
 
     ## IOU occurs here
-    bouding_boxes = IoU(bounding_boxes, box_size)
-
+    # print(np.shape(bounding_boxes))
+    bounding_boxes = IoU(bounding_boxes, box_size)
 
     for ii in range(bounding_boxes.shape[0]):
 

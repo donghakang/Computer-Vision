@@ -1,5 +1,8 @@
 # HOG Descriptor and Face Detection
 
+Dongha Kang
+
+
 Histogram of Oriented Gradients (HOG) and Face Detection using Histogram of Oriented Gradients.
 
 ## Getting Started
