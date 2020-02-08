@@ -30,6 +30,7 @@ Histogram. With the histogram, one can finally detect the face with target image
 ### Test Images
 
 <img src="./img/original.png" width="50%" height="50%">
+![Original Image](./img/original.png "original image")
 **original image**
 <img src="./img/im_dx.png" width="50%" height="50%">
 **im_dx** x direction filter
