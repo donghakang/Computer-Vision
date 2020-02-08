@@ -32,7 +32,6 @@ def calculate_filter(filter, kernel):
 def histo_normalization(block, block_size):
     e = 0.001       # prevent divison by 0.
     x,y,z = np.shape(block)
-    # division = np.sum(block ** 2, axis = 2) + e ** 2  # block_size x block_size
     return_block = np.zeros(x * y * z).reshape(np.shape(block))
     for i in range (0, block_size):
         for j in range (0, block_size):
@@ -79,7 +78,6 @@ def ncc(tar, tem):
 
     score = dot / np.sqrt(x * y)
     return score
-
 
 
 # IoU : intersection of Union
@@ -157,7 +155,6 @@ def IoU (boxes, box_size):
                 boxes[[i,j],:] = boxes[[j,i],:] # swap the position
                 boxes = np.delete(boxes, j, 0)
                 count -= 1
-                print("swap")
         else:
             j += 1
 
@@ -166,10 +163,6 @@ def IoU (boxes, box_size):
             j = i+1
         if i >= count - 1:
             break
-        # print("IOU: " +str(iou) + " == " + str(i) + " :: " + str(j) + " :: " + str(count))
-
-
-    print(boxes)
     return boxes
 
 
@@ -218,7 +211,7 @@ def build_histogram(grad_mag, grad_angle, cell_size):
     grad_angle_M, grad_angle_N = np.shape(grad_angle)
 
     if grad_mag_M != grad_angle_M or grad_mag_N != grad_angle_N:
-        print("Error in Build histogram")
+        print("ERROR: Build histogram")
         exit(0)
 
     M = int(grad_mag_M / cell_size)
@@ -252,8 +245,8 @@ def build_histogram(grad_mag, grad_angle, cell_size):
                         grad_mag1 += grad_mag[cell_m + (m * cell_size), cell_n + (n * cell_size)]
                     else:
                         print(angle)
-                        print("Error in Build Histogram")
-                        print("      occurred in grad_angle")
+                        print("ERROR: Build Histogram")
+                        print("       occurred in grad_angle")
                         exit(0)
             ori_histo[m, n, :] = [grad_mag1, grad_mag2, grad_mag3, grad_mag4, grad_mag5, grad_mag6]
     return ori_histo
@@ -282,7 +275,7 @@ def extract_hog(im):
 # 6: Return a long vector (hog) by concatenating all block descriptors.
 
     im = im.astype('float') / 255.0
-    # To do
+
     filter_x, filter_y = get_differential_filter()
     im_dx = filter_image(im, filter_x)
     im_dy = filter_image(im, filter_y)
@@ -370,7 +363,6 @@ def box_visualization(I_target,bounding_boxes,box_size):
     fimg=I_target.copy()
 
     ## IOU occurs here
-    # print(np.shape(bounding_boxes))
     bounding_boxes = IoU(bounding_boxes, box_size)
 
     for ii in range(bounding_boxes.shape[0]):
@@ -407,18 +399,16 @@ def box_visualization(I_target,bounding_boxes,box_size):
 
 
 if __name__=='__main__':
-    # im = cv2.imread('balloons.tif', 0)
+
+    ## to enable hog, uncomment lines below
+    # im = cv2.imread('img/balloons.tif', 0)
     # hog = extract_hog(im)
 
+    ## to enable face detection, uncomment lines below
     I_target= cv2.imread('img/target.png', 0)
-    #MxN image
-
     I_template = cv2.imread('img/template.png', 0)
-    #mxn  face template
 
     bounding_boxes = face_recognition(I_target, I_template)
 
     I_target_c= cv2.imread('img/target.png')
-    # MxN image (just for visualization)
     box_visualization(I_target_c, bounding_boxes, I_template.shape[0])
-    #this is visualization code.
