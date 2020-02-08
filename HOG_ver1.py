@@ -158,7 +158,7 @@ def IoU (boxes, box_size):
                 count -= 1
         else:
             j += 1
-            
+
         if j == count:
             i += 1
             j = i+1
@@ -284,8 +284,17 @@ def extract_hog(im):
     grad_mag, grad_angle = get_gradient(im_dx, im_dy)
     ori = build_histogram(grad_mag, grad_angle, 8)
     hog = get_block_descriptor(ori, 2)
-    # hog = np.zeros(111864)
-    # visualize to verify
+
+    # visualization
+    # plt.imshow(im_dx, cmap='jet', vmin=0, vmax=1)
+    # plt.show()
+    # plt.imshow(im_dy, cmap='jet', vmin=0, vmax=1)
+    # plt.show()
+    # plt.imshow(grad_mag, cmap='jet', vmin=0, vmax=1)
+    # plt.show()
+    # plt.imshow(grad_angle, cmap='jet', vmin=0, vmax=1)
+    # plt.show()
+
     visualize_hog(im, hog, 8, 2)
 
     return hog
@@ -360,7 +369,7 @@ def box_visualization(I_target,bounding_boxes,box_size):
     fimg=I_target.copy()
 
     ## IOU occurs here
-    bouding_boxes = IoU(bounding_boxes, box_size)
+    # bouding_boxes = IoU(bounding_boxes, box_size)
 
 
     for ii in range(bounding_boxes.shape[0]):
