@@ -36,8 +36,11 @@ Histogram. With the histogram, one can finally detect the face with target image
 This is the original image.
 
 
+
 <img src="./img/im_dx.png" width="50%" height="50%">
 im_dx, x direction filter
+
+
 
 <img src="./img/im_dy.png" width="50%" height="50%">
 im_dy, y direction filter
@@ -55,8 +58,14 @@ grad_angle gradient by angle
 With the filter above, we can obtain magnitude and angle filtered image
 
 
+
+
+
 <img src="./img/HOG.png" width="50%" height="50%">
 HOG Descriptor. (angle)
+
+
+
 
 
 <img src="./img/threshold.png" width="50%" height="50%">
