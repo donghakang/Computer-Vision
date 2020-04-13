@@ -1,15 +1,13 @@
 import scipy.io as sio
 import matplotlib.pyplot as plt
 import numpy as np
-# from cnn_answer import get_mini_batch, fc, relu, conv, pool2x2, flattening
-# from cnn_answer import train_slp_linear, train_slp, train_mlp, train_cnn
 from cnn import get_mini_batch, fc, relu, conv, pool2x2, flattening
 from cnn import train_slp_linear, train_slp, train_mlp, train_cnn
 
 
 def main_slp_linear():
-    mnist_train = sio.loadmat('./mnist_train.mat')
-    mnist_test = sio.loadmat('./mnist_test.mat')
+    mnist_train = sio.loadmat('./ReducedMNIST/mnist_train.mat')
+    mnist_test = sio.loadmat('./ReducedMNIST/mnist_test.mat')
     im_train, label_train = mnist_train['im_train'], mnist_train['label_train']
     im_test, label_test = mnist_test['im_test'], mnist_test['label_test']
     batch_size = 32
@@ -33,12 +31,11 @@ def main_slp_linear():
     for i in range(10):
         confusion[:, i] = confusion[:, i] / np.sum(confusion[:, i])
 
-    label_classes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-    visualize_confusion_matrix(confusion, accuracy, label_classes, 'Single-layer Linear Perceptron Confusion Matrix')
+    return confusion, accuracy
 
 def main_slp():
-    mnist_train = sio.loadmat('./mnist_train.mat')
-    mnist_test = sio.loadmat('./mnist_test.mat')
+    mnist_train = sio.loadmat('./ReducedMNIST/mnist_train.mat')
+    mnist_test = sio.loadmat('./ReducedMNIST/mnist_test.mat')
     im_train, label_train = mnist_train['im_train'], mnist_train['label_train']
     im_test, label_test = mnist_test['im_test'], mnist_test['label_test']
     batch_size = 32
@@ -62,12 +59,11 @@ def main_slp():
     for i in range(10):
         confusion[:, i] = confusion[:, i] / np.sum(confusion[:, i])
 
-    label_classes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-    visualize_confusion_matrix(confusion, accuracy, label_classes, 'Single-layer Perceptron Confusion Matrix')
+    return confusion, accuracy
 
 def main_mlp():
-    mnist_train = sio.loadmat('./mnist_train.mat')
-    mnist_test = sio.loadmat('./mnist_test.mat')
+    mnist_train = sio.loadmat('./ReducedMNIST/mnist_train.mat')
+    mnist_test = sio.loadmat('./ReducedMNIST/mnist_test.mat')
     im_train, label_train = mnist_train['im_train'], mnist_train['label_train']
     im_test, label_test = mnist_test['im_test'], mnist_test['label_test']
     batch_size = 32
@@ -93,13 +89,12 @@ def main_mlp():
     for i in range(10):
         confusion[:, i] = confusion[:, i] / np.sum(confusion[:, i])
 
-    label_classes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-    visualize_confusion_matrix(confusion, accuracy, label_classes, 'Multi-layer Perceptron Confusion Matrix')
+    return confusion, accuracy
 
 
 def main_cnn():
-    mnist_train = sio.loadmat('./mnist_train.mat')
-    mnist_test = sio.loadmat('./mnist_test.mat')
+    mnist_train = sio.loadmat('./ReducedMNIST/mnist_train.mat')
+    mnist_test = sio.loadmat('./ReducedMNIST/mnist_test.mat')
     im_train, label_train = mnist_train['im_train'], mnist_train['label_train']
     im_test, label_test = mnist_test['im_test'], mnist_test['label_test']
     batch_size = 32
@@ -129,8 +124,7 @@ def main_cnn():
     for i in range(10):
         confusion[:, i] = confusion[:, i] / np.sum(confusion[:, i])
 
-    label_classes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-    visualize_confusion_matrix(confusion, accuracy, label_classes, 'CNN Confusion Matrix')
+    return confusion, accuracy
 
 
 def visualize_confusion_matrix(confusion, accuracy, label_classes, name):
@@ -142,4 +136,32 @@ def visualize_confusion_matrix(confusion, accuracy, label_classes, name):
     ax.set_xticks(np.arange(len(label_classes) + 1) - .5, minor=True)
     ax.set_yticks(np.arange(len(label_classes) + 1) - .5, minor=True)
     ax.tick_params(which="minor", bottom=False, left=False)
+    plt.show()
+
+def visualize_confusion_matrix_all(c1, a1, c2, a2, c3, a3, c4, a4):
+    label_classes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+
+    fig = plt.figure()
+    fig.add_subplot(2, 2, 1)
+    plt.title("SLP-linear accuracy = {:.2f}%".format(a1 * 100))
+    plt.imshow(c1)
+    fig.tight_layout()
+
+
+    fig.add_subplot(2, 2, 2)
+    plt.title("SLP accuracy = {:.2f}%".format(a2 * 100))
+    plt.imshow(c2)
+    fig.tight_layout()
+
+
+    fig.add_subplot(2, 2, 3)
+    plt.title("MLP accuracy = {:.2f}%".format(a3 * 100))
+    plt.imshow(c3)
+    fig.tight_layout()
+
+    fig.add_subplot(2, 2, 4)
+    plt.title("CNN accuracy = {:.2f}%".format(a4 * 100))
+    plt.imshow(c4)
+    fig.tight_layout()
+
     plt.show()
