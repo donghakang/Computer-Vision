@@ -1,6 +1,6 @@
 # Stereo Reconstruction
 Dongha Kang
-[[Summary](https://drive.google.com/open?id=1MaQKEPTpxnrGbUZ7f6ffxRCDTDdMMpX5)]
+[[Summary](https://drive.google.com/open?id=1-faHc-VPcij431HNmKmzoZkwaeQ7rGfe)]
 
 ## Installation
 In this implemenation specifically, opencv version 3.4.2.16 is used
